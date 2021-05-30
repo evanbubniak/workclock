@@ -1,0 +1,28 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #333;
+    color: #fff;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* min-height: 100vh; */
+    min-width: 0;
+    margin:0;
+}
+
+div.container {
+    display: grid;
+}
+
+#myChart, #dupeChart {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#dupeChart {
+    pointer-events: none;
+}
