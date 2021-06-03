@@ -104,13 +104,13 @@ function drawHandLoop(timestamp) {
                 break;
             }
         }
-        let subFirstIndexUnder;
-        for (let ii = 0; ii < sublabelProportionCumSum.length; ii++) {
-            if (sublabelProportionCumSum[ii]/totalProportions >= currentPosFraction) {
-                subFirstIndexUnder = ii;
-                break;
-            }
-        }
+        // let subFirstIndexUnder;
+        // for (let ii = 0; ii < sublabelProportionCumSum.length; ii++) {
+        //     if (sublabelProportionCumSum[ii]/totalProportions >= currentPosFraction) {
+        //         subFirstIndexUnder = ii;
+        //         break;
+        //     }
+        // }
 
         if (currItem !== labels[firstIndexUnder]) {
             currItem = labels[firstIndexUnder];
@@ -130,7 +130,7 @@ function drawHandLoop(timestamp) {
 
         
         document.getElementById("currItem").innerText = labels[firstIndexUnder];
-        document.getElementById("currSubitem").innerText = sublabels[subFirstIndexUnder];
+        // document.getElementById("currSubitem").innerText = sublabels[subFirstIndexUnder];
     
     
         start = timestamp;        
@@ -239,6 +239,12 @@ document.getElementById("addItemForm").addEventListener("submit", (event) => {
     pushNewItem(item, weight);
 
 })
+
+document.getElementById("setThetaForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    theta = (Math.PI*event.target.elements["newTheta"].value)/180;
+})
+
 
 requestAnimationFrame(drawHandLoop);
 

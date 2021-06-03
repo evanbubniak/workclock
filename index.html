@@ -25,12 +25,16 @@
         <label for="notificationsEnabled">Show notifications</label>
         <form id="addItemForm">
             <input type="text" name="Item" placeholder="Item" />
-            <input type="number" name="Weight" placeholder="Weight" />
+            <input type="number" name="Weight" placeholder="Weight" min="0" step="0.25"/>
             <button type="submit">Add Item</button>
+        </form>
+        <form id="setThetaForm">
+            <input type="number" min="0" max="360" name="newTheta" placeholder="degrees">
+            <button type="submit">Set Theta</button>
         </form>
         <p>Sum of weights: <span id="timeSum"></span></p>
         <p>Current Item: <span id="currItem"></span></p>
-        <p>Current Subitem: <span id="currSubitem"></span></p>
+        <!-- <p>Current Subitem: <span id="currSubitem"></span></p> -->
         <ol id="item-list">                        
         </ol>
         <script src="chart.js"></script>
