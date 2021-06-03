@@ -5,25 +5,60 @@ const chartColors = {
     green: 'rgb(75, 192, 192)',
     blue: 'rgb(54, 162, 235)',
     purple: 'rgb(153, 102, 255)',
-    grey: 'rgb(201, 203, 207)'
+    // grey: 'rgb(201, 203, 207)'
+    darkgrey: 'rgb(131, 133, 137)'
 };
 
 // Chart.defaults.global.defaultFontFamily = "Lato";
 Chart.defaults.global.defaultFontSize = 18;
 Chart.defaults.global.defaultFontColor = "#777";
 
-const secondsPerRevolution = 30;
+let labels = ["Language", "CTCI", "Coding", "Con Ed", "Piano", "Art",  "FE"];
+let proportions = [2, 3, 3, 4, 1.5, 2, 1];
 
+let sublabels = [];
+Object.assign(sublabels, labels.map(label => {return label + " i";}));
+let sublabelMapping = new Map();
+labels.forEach((label, idx) => sublabelMapping.set(label, [proportions[idx]]));
+let sublabelProportions = Array.from(sublabelMapping.values()).flat();
+let titleText = "Time";
+let dataLabel = "Sections";
+
+;
+
+
+
+const spm = 60;
+const mph = 60;
+const cycleTimeHours = 4;
+const secondsPerRevolution = cycleTimeHours*spm*mph;
+// const secondsPerRevolution = 50;
 const cutoutPercentage = 25;
 const initialTheta = 0;
 const initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000; // radians per second
+
 let dtheta = 0;
 let theta = initialTheta;
 let canDraw = false;
 let notificationsEnabled = false;
 let start;
 
+
 let currItem;
+let currItemTimeRemaining;
+let totalProportions;
+
+function formatSecs(numSecs) {
+    if (numSecs > spm*mph) {
+        const hrs = Math.floor(numSecs/(spm*mph));
+        const min = Math.floor((numSecs - (hrs*spm*mph))/spm);
+        return (`${hrs.toString()}:${min.toString()}:${Math.floor((numSecs % spm)).toString().padStart(2, '0')}`);
+    } else {
+        const min = Math.floor(numSecs/spm);
+        return (`${min.toString()}:${Math.floor((numSecs % spm)).toString().padStart(2, '0')}`);
+    }
+}
+
 function drawHandLoop(timestamp) {        
     
     let dupecanvas = document.getElementById("dupeChart");
@@ -51,13 +86,14 @@ function drawHandLoop(timestamp) {
     dupectx.lineTo(centerX + length*Math.cos(theta + 0.5*Math.PI), centerY - length*Math.sin(theta + 0.5*Math.PI));
     dupectx.stroke();
     dupectx.fill();
+
     if (dtheta !== 0) {
         theta -= elapsed*dtheta;
         if (theta < 0) {
             theta = (2*Math.PI) + theta;
         }
 
-        const totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
+        totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
         const currentPosFraction = (2*Math.PI - theta) / (2*Math.PI);
         const proportionCumSum = proportions.map((sum => value => sum += value)(0));
         const sublabelProportionCumSum = sublabelProportions.map((sum => value => sum += value)(0));
@@ -85,7 +121,14 @@ function drawHandLoop(timestamp) {
             }
 
         }
+        const currItemSecsRemaining = secondsPerRevolution*((proportionCumSum[firstIndexUnder]/totalProportions) - currentPosFraction);
+        const newCurrItemTimeRemaining = formatSecs(currItemSecsRemaining);
+        if (newCurrItemTimeRemaining !== currItemTimeRemaining) {
+            currItemTimeRemaining = newCurrItemTimeRemaining;
+            timeChart.update();
+        }
 
+        
         document.getElementById("currItem").innerText = labels[firstIndexUnder];
         document.getElementById("currSubitem").innerText = sublabels[subFirstIndexUnder];
     
@@ -100,24 +143,12 @@ function pushNew(event) {
     event.preventDefault();
     timeChart.data.datasets[0].data.push(Math.random());
     timeChart.data.labels.push(Math.random().toFixed(5));
+    totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
     timeChart.update();
 }
 
 let ctx = document.getElementById("myChart").getContext("2d");
-let labels = ["CTCI", "Coding", "Con Ed", "Piano", "Art", "Language", "FE"];
-let proportions = [3, 3, 4, 2, 2, 2, 1];
 
-let sublabels = [];
-Object.assign(sublabels, labels.map(label => {return label + " i";}));
-let sublabelMapping = new Map();
-labels.forEach((label, idx) => sublabelMapping.set(label, [proportions[idx]]));
-let sublabelProportions = Array.from(sublabelMapping.values()).flat();
-
-
-
-
-let titleText = "Time";
-let dataLabel = "Sections";
 
 let timeChart = new Chart(ctx, {
     type:"doughnut", // bar, horizontalBar, pie, line, doughnut, radar, polarArea
@@ -166,23 +197,27 @@ let timeChart = new Chart(ctx, {
                     if (context.datasetIndex === 0) {
                         return context.chart.data.datasets[context.datasetIndex].labels[context.dataIndex];
                     } else {
-                        return "";
+                        if (context.chart.data.datasets[0].labels[context.dataIndex] === currItem) {
+                            return currItemTimeRemaining;
+                        } else return formatSecs(secondsPerRevolution*(context.chart.data.datasets[context.datasetIndex].data[context.dataIndex]/totalProportions));
                     }
                     
-                }
-            }
+                },
+                color: 'white'
+            },
         }
     },
     
 })
 
 function updateTimeSum() {
-    document.getElementById("timeSum").innerText = proportions.reduce(function(totalSum, currentValue) { return totalSum + parseFloat(currentValue); }, 0);
+    document.getElementById("timeSum").innerText = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
 }
 
 function pushNewItem(item, weight) {
-    proportions.push(weight);
+    proportions.push(parseFloat(weight));
     labels.push(item);
+    totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
     timeChart.update();
     updateTimeSum();
 }
@@ -191,6 +226,7 @@ function clear() {
     proportions.length = 0;
     labels.length = 0;
     sublabelProportions.length = 0;
+    totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
     timeChart.update();
 }
 
@@ -248,6 +284,7 @@ document.getElementById("loadButton").addEventListener("click", (event) => {
     Object.assign(labels, obj.labels);
     Object.assign(proportions, obj.proportions);
     theta = obj.theta;
+    totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
     timeChart.update();
 });
 
@@ -261,3 +298,5 @@ document.getElementById("notificationsEnabled").addEventListener("change", (even
 })
 
 updateTimeSum();
+totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
+timeChart.update();
