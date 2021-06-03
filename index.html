@@ -21,16 +21,19 @@
         <button type="button" id="resetClock">Reset Clock</button>
         <button type="button" id="saveButton">Save</button>
         <button type="button" id="loadButton">Load</button>
-        <form id="addHobbyForm">
-            <input type="text" name="Hobby" placeholder="Hobby" />
+        <input type="checkbox" id="notificationsEnabled" name="notificationsEnabled">
+        <label for="notificationsEnabled">Show notifications</label>
+        <form id="addItemForm">
+            <input type="text" name="Item" placeholder="Item" />
             <input type="number" name="Weight" placeholder="Weight" />
-            <button type="submit">Add Hobby</button>
+            <button type="submit">Add Item</button>
         </form>
-        <p>Sum of hours listed: <span id="timeSum"></span></p>
-        <p>Current Hobby: <span id="currHobby"></span></p>
-        <p>Current Subhobby: <span id="currSubhobby"></span></p>
-        <ol id="hobby-list">                        
+        <p>Sum of weights: <span id="timeSum"></span></p>
+        <p>Current Item: <span id="currItem"></span></p>
+        <p>Current Subitem: <span id="currSubitem"></span></p>
+        <ol id="item-list">                        
         </ol>
         <script src="chart.js"></script>
+        <!-- <script src="renderer.js"></script> -->
     </body>
 </html>

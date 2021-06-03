@@ -12,7 +12,7 @@ const chartColors = {
 Chart.defaults.global.defaultFontSize = 18;
 Chart.defaults.global.defaultFontColor = "#777";
 
-const secondsPerRevolution = 2;
+const secondsPerRevolution = 30;
 
 const cutoutPercentage = 25;
 const initialTheta = 0;
@@ -20,35 +20,38 @@ const initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000; // radians per se
 let dtheta = 0;
 let theta = initialTheta;
 let canDraw = false;
-
+let notificationsEnabled = false;
 let start;
+
+let currItem;
 function drawHandLoop(timestamp) {        
-    if (dtheta !== 0) {
-        let dupecanvas = document.getElementById("dupeChart");
-        let dupectx = dupecanvas.getContext("2d");
-        let canvas = timeChart.canvas;
-        dupecanvas.height = canvas.height;
-        dupecanvas.width = canvas.width;
-        dupecanvas.style.display = canvas.style.display;
-        dupecanvas.style.height = canvas.style.height;
-        dupecanvas.style.width = canvas.style.width;
-        let centerX = 2*((timeChart.chartArea.left + timeChart.chartArea.right) / 2);
-        let centerY = 2*((timeChart.chartArea.top + timeChart.chartArea.bottom) / 2);
-        let length = 0.9*(timeChart.chartArea.bottom - timeChart.chartArea.top);
     
-        if (start === undefined) {
-            start = timestamp;
-        }
-        const elapsed = timestamp - start;
-        dupectx.clearRect(0, 0, dupecanvas.width, dupecanvas.height);
-        dupectx.strokeStyle = '#000';
-        dupectx.fillStyle = '#000';
-        dupectx.lineWidth = 10;
-        dupectx.beginPath();
-        dupectx.moveTo(centerX, centerY);
-        dupectx.lineTo(centerX + length*Math.cos(theta + 0.5*Math.PI), centerY - length*Math.sin(theta + 0.5*Math.PI));
-        dupectx.stroke();
-        dupectx.fill();
+    let dupecanvas = document.getElementById("dupeChart");
+    let dupectx = dupecanvas.getContext("2d");
+    let canvas = timeChart.canvas;
+    dupecanvas.height = canvas.height;
+    dupecanvas.width = canvas.width;
+    dupecanvas.style.display = canvas.style.display;
+    dupecanvas.style.height = canvas.style.height;
+    dupecanvas.style.width = canvas.style.width;
+    let centerX = 2*((timeChart.chartArea.left + timeChart.chartArea.right) / 2);
+    let centerY = 2*((timeChart.chartArea.top + timeChart.chartArea.bottom) / 2);
+    let length = 0.9*(timeChart.chartArea.bottom - timeChart.chartArea.top);
+
+    if (start === undefined) {
+        start = timestamp;
+    }
+    const elapsed = timestamp - start;
+    dupectx.clearRect(0, 0, dupecanvas.width, dupecanvas.height);
+    dupectx.strokeStyle = '#000';
+    dupectx.fillStyle = '#000';
+    dupectx.lineWidth = 10;
+    dupectx.beginPath();
+    dupectx.moveTo(centerX, centerY);
+    dupectx.lineTo(centerX + length*Math.cos(theta + 0.5*Math.PI), centerY - length*Math.sin(theta + 0.5*Math.PI));
+    dupectx.stroke();
+    dupectx.fill();
+    if (dtheta !== 0) {
         theta -= elapsed*dtheta;
         if (theta < 0) {
             theta = (2*Math.PI) + theta;
@@ -73,8 +76,18 @@ function drawHandLoop(timestamp) {
             }
         }
 
-        document.getElementById("currHobby").innerText = labels[firstIndexUnder];
-        document.getElementById("currSubhobby").innerText = sublabels[subFirstIndexUnder];
+        if (currItem !== labels[firstIndexUnder]) {
+            currItem = labels[firstIndexUnder];
+            if (notificationsEnabled) {
+                new Notification("New Item", {
+                    body: `Switch to ${currItem}!`
+                });
+            }
+
+        }
+
+        document.getElementById("currItem").innerText = labels[firstIndexUnder];
+        document.getElementById("currSubitem").innerText = sublabels[subFirstIndexUnder];
     
     
         start = timestamp;        
@@ -164,12 +177,12 @@ let timeChart = new Chart(ctx, {
 })
 
 function updateTimeSum() {
-    document.getElementById("timeSum").innerText = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
+    document.getElementById("timeSum").innerText = proportions.reduce(function(totalSum, currentValue) { return totalSum + parseFloat(currentValue); }, 0);
 }
 
-function pushNewHobby(hobby, weight) {
+function pushNewItem(item, weight) {
     proportions.push(weight);
-    labels.push(hobby);
+    labels.push(item);
     timeChart.update();
     updateTimeSum();
 }
@@ -177,16 +190,17 @@ function pushNewHobby(hobby, weight) {
 function clear() {
     proportions.length = 0;
     labels.length = 0;
+    sublabelProportions.length = 0;
     timeChart.update();
 }
 
-document.getElementById("addHobbyForm").addEventListener("submit", (event) => {
+document.getElementById("addItemForm").addEventListener("submit", (event) => {
     event.preventDefault();
     
     let elements = event.target.elements;
-    let hobby = elements["Hobby"].value;
+    let item = elements["Item"].value;
     let weight = elements["Weight"].value;
-    pushNewHobby(hobby, weight);
+    pushNewItem(item, weight);
 
 })
 
@@ -219,7 +233,7 @@ document.getElementById("clearButton").addEventListener("click", (event) => {
 
 document.getElementById("saveButton").addEventListener("click", (event) => {
     event.preventDefault();
-    localStorage.setItem("hobbies", JSON.stringify({
+    localStorage.setItem("items", JSON.stringify({
         labels,
         proportions,
         theta
@@ -228,7 +242,7 @@ document.getElementById("saveButton").addEventListener("click", (event) => {
 
 document.getElementById("loadButton").addEventListener("click", (event) => {
     event.preventDefault();
-    let obj = JSON.parse(localStorage.getItem("hobbies"));
+    let obj = JSON.parse(localStorage.getItem("items"));
     labels.length = 0;
     proportions.length = 0;
     Object.assign(labels, obj.labels);
@@ -236,5 +250,14 @@ document.getElementById("loadButton").addEventListener("click", (event) => {
     theta = obj.theta;
     timeChart.update();
 });
+
+document.getElementById("notificationsEnabled").addEventListener("change", (event) => {
+    event.preventDefault();
+    if (event.target.checked) {
+        notificationsEnabled = true;
+    } else {
+        notificationsEnabled = false;
+    }
+})
 
 updateTimeSum();
