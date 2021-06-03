@@ -8,11 +8,19 @@ div.container {
     max-width: 50%;
 }
 
+
+
 #myChart, #dupeChart {
     grid-column: 1;
     grid-row: 1;
 }
 
+#myChart {
+    filter: invert(1) hue-rotate(180deg);
+    z-index: 1;
+}
+
 #dupeChart {
     pointer-events: none;
+    z-index: 2;
 }
