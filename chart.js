@@ -1,3 +1,6 @@
+
+
+
 const chartColors = {
     red: 'rgb(255, 99, 132)',
     orange: 'rgb(255, 159, 64)',
@@ -13,7 +16,7 @@ const chartColors = {
 Chart.defaults.global.defaultFontSize = 18;
 Chart.defaults.global.defaultFontColor = "#777";
 
-let labels = ["Language", "CTCI", "Coding", "Con Ed", "Piano", "Art",  "FE"];
+let labels = ["Language", "CTCI", "Coding", "Work", "Piano", "Art",  "FE"];
 let proportions = [2, 3, 3, 4, 1.5, 2, 1];
 
 let sublabels = [];
@@ -24,21 +27,32 @@ let sublabelProportions = Array.from(sublabelMapping.values()).flat();
 let titleText = "Time";
 let dataLabel = "Sections";
 
-;
-
-
-
 const spm = 60;
 const mph = 60;
-const cycleTimeHours = 4;
-const secondsPerRevolution = cycleTimeHours*spm*mph;
+let cycleTimeHours = 0.01;
+let secondsPerRevolution = cycleTimeHours*spm*mph;
+
+
 // const secondsPerRevolution = 50;
 const cutoutPercentage = 25;
 const initialTheta = 0;
-const initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000; // radians per second
-
+let initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000; // radians per second
 let dtheta = 0;
 let theta = initialTheta;
+
+const modifyCycleTimeHours = (newCycleTimeHours) => {
+    cycleTimeHours = newCycleTimeHours;
+    secondsPerRevolution = cycleTimeHours*spm*mph;
+    if (dtheta === initialdTheta) {
+        initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000;
+        dtheta = initialdTheta;
+    } else {
+        initialdTheta = ((2*Math.PI)/secondsPerRevolution)/1000;
+    }
+    
+}
+
+
 let canDraw = false;
 let notificationsEnabled = false;
 let start;
@@ -52,11 +66,19 @@ function formatSecs(numSecs) {
     if (numSecs > spm*mph) {
         const hrs = Math.floor(numSecs/(spm*mph));
         const min = Math.floor((numSecs - (hrs*spm*mph))/spm);
-        return (`${hrs.toString()}:${min.toString()}:${Math.floor((numSecs % spm)).toString().padStart(2, '0')}`);
+        return (`${hrs.toString()}:${min.toString().padStart(2, '0')}:${Math.floor((numSecs % spm)).toString().padStart(2, '0')}`);
     } else {
         const min = Math.floor(numSecs/spm);
         return (`${min.toString()}:${Math.floor((numSecs % spm)).toString().padStart(2, '0')}`);
     }
+}
+
+function sendNotification(currItem) {
+    if (window.api.sendNotification === undefined) {
+        new Notification("New Item", {
+            body: `Switch to ${currItem}!`
+        });        
+    } else window.api.sendNotification(currItem);
 }
 
 function drawHandLoop(timestamp) {        
@@ -115,9 +137,7 @@ function drawHandLoop(timestamp) {
         if (currItem !== labels[firstIndexUnder]) {
             currItem = labels[firstIndexUnder];
             if (notificationsEnabled) {
-                new Notification("New Item", {
-                    body: `Switch to ${currItem}!`
-                });
+                sendNotification(currItem);
             }
 
         }
@@ -245,6 +265,10 @@ document.getElementById("setThetaForm").addEventListener("submit", (event) => {
     theta = (Math.PI*event.target.elements["newTheta"].value)/180;
 })
 
+document.getElementById("setHoursForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    modifyCycleTimeHours(parseFloat(event.target.elements["newHours"].value));
+})
 
 requestAnimationFrame(drawHandLoop);
 
