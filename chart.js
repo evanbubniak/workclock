@@ -16,8 +16,8 @@ const chartColors = {
 Chart.defaults.global.defaultFontSize = 18;
 Chart.defaults.global.defaultFontColor = "#777";
 
-let labels = ["Language", "CTCI", "Coding", "Work", "Piano", "Art",  "FE"];
-let proportions = [2, 3, 3, 4, 1.5, 2, 1];
+let labels = ["Languages", "CTCI", "Coding", "Piano", "Drawing"];
+let proportions = [2, 3, 3, 4, 2];
 
 let sublabels = [];
 Object.assign(sublabels, labels.map(label => {return label + " i";}));
@@ -29,7 +29,7 @@ let dataLabel = "Sections";
 
 const spm = 60;
 const mph = 60;
-let cycleTimeHours = 0.01;
+let cycleTimeHours = 1;
 let secondsPerRevolution = cycleTimeHours*spm*mph;
 
 
@@ -81,34 +81,17 @@ function sendNotification(currItem) {
     } else window.api.sendNotification(currItem);
 }
 
-function drawHandLoop(timestamp) {        
+function updateTime() {
+
+    clockAnimationID = requestAnimationFrame(drawHandLoop);
     
-    let dupecanvas = document.getElementById("dupeChart");
-    let dupectx = dupecanvas.getContext("2d");
-    let canvas = timeChart.canvas;
-    dupecanvas.height = canvas.height;
-    dupecanvas.width = canvas.width;
-    dupecanvas.style.display = canvas.style.display;
-    dupecanvas.style.height = canvas.style.height;
-    dupecanvas.style.width = canvas.style.width;
-    let centerX = 2*((timeChart.chartArea.left + timeChart.chartArea.right) / 2);
-    let centerY = 2*((timeChart.chartArea.top + timeChart.chartArea.bottom) / 2);
-    let length = 0.9*(timeChart.chartArea.bottom - timeChart.chartArea.top);
+    const timestamp = performance.now();
 
     if (start === undefined) {
         start = timestamp;
     }
-    const elapsed = timestamp - start;
-    dupectx.clearRect(0, 0, dupecanvas.width, dupecanvas.height);
-    dupectx.strokeStyle = '#000';
-    dupectx.fillStyle = '#000';
-    dupectx.lineWidth = 10;
-    dupectx.beginPath();
-    dupectx.moveTo(centerX, centerY);
-    dupectx.lineTo(centerX + length*Math.cos(theta + 0.5*Math.PI), centerY - length*Math.sin(theta + 0.5*Math.PI));
-    dupectx.stroke();
-    dupectx.fill();
 
+    const elapsed = timestamp - start;
     if (dtheta !== 0) {
         theta -= elapsed*dtheta;
         if (theta < 0) {
@@ -126,13 +109,6 @@ function drawHandLoop(timestamp) {
                 break;
             }
         }
-        // let subFirstIndexUnder;
-        // for (let ii = 0; ii < sublabelProportionCumSum.length; ii++) {
-        //     if (sublabelProportionCumSum[ii]/totalProportions >= currentPosFraction) {
-        //         subFirstIndexUnder = ii;
-        //         break;
-        //     }
-        // }
 
         if (currItem !== labels[firstIndexUnder]) {
             currItem = labels[firstIndexUnder];
@@ -154,9 +130,33 @@ function drawHandLoop(timestamp) {
     
     
         start = timestamp;        
-    }  
+    }
+}
 
-    clockAnimationID = requestAnimationFrame(drawHandLoop);
+function drawHandLoop() {        
+    
+    let dupecanvas = document.getElementById("dupeChart");
+    let dupectx = dupecanvas.getContext("2d");
+    let canvas = timeChart.canvas;
+    dupecanvas.height = canvas.height;
+    dupecanvas.width = canvas.width;
+    dupecanvas.style.display = canvas.style.display;
+    dupecanvas.style.height = canvas.style.height;
+    dupecanvas.style.width = canvas.style.width;
+    let centerX = 2*((timeChart.chartArea.left + timeChart.chartArea.right) / 2);
+    let centerY = 2*((timeChart.chartArea.top + timeChart.chartArea.bottom) / 2);
+    let length = 0.9*(timeChart.chartArea.bottom - timeChart.chartArea.top);
+
+    dupectx.clearRect(0, 0, dupecanvas.width, dupecanvas.height);
+    dupectx.strokeStyle = '#000';
+    dupectx.fillStyle = '#000';
+    dupectx.lineWidth = 10;
+    dupectx.beginPath();
+    dupectx.moveTo(centerX, centerY);
+    dupectx.lineTo(centerX + length*Math.cos(theta + 0.5*Math.PI), centerY - length*Math.sin(theta + 0.5*Math.PI));
+    dupectx.stroke();
+    dupectx.fill();
+
 }
 
 function pushNew(event) {
@@ -268,9 +268,10 @@ document.getElementById("setThetaForm").addEventListener("submit", (event) => {
 document.getElementById("setHoursForm").addEventListener("submit", (event) => {
     event.preventDefault();
     modifyCycleTimeHours(parseFloat(event.target.elements["newHours"].value));
+    timeChart.update();
 })
 
-requestAnimationFrame(drawHandLoop);
+setInterval(updateTime,1)
 
 document.getElementById("startClock").addEventListener("click", (event) => {
     event.preventDefault();
@@ -302,7 +303,8 @@ document.getElementById("saveButton").addEventListener("click", (event) => {
     localStorage.setItem("items", JSON.stringify({
         labels,
         proportions,
-        theta
+        theta,
+        cycleTimeHours
     }))
 });
 
@@ -316,6 +318,7 @@ document.getElementById("loadButton").addEventListener("click", (event) => {
     theta = obj.theta;
     totalProportions = proportions.reduce(function(totalSum, currentValue) { return totalSum + currentValue; }, 0);
     timeChart.update();
+    modifyCycleTimeHours(obj.cycleTimeHours);
 });
 
 document.getElementById("notificationsEnabled").addEventListener("change", (event) => {

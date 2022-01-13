@@ -15,29 +15,34 @@
             <canvas id="myChart"></canvas>
             <canvas id="dupeChart"></canvas>
         </div>
-        <button type="button" id="clearButton">Clear</button>
-        <button type="button" id="startClock">Start Clock</button>
-        <button type="button" id="stopClock">Stop Clock</button>
-        <button type="button" id="resetClock">Reset Clock</button>
-        <button type="button" id="saveButton">Save</button>
-        <button type="button" id="loadButton">Load</button>
-        <input type="checkbox" id="notificationsEnabled" name="notificationsEnabled">
-        <label for="notificationsEnabled">Show notifications</label>
-        <form id="addItemForm">
-            <input type="text" name="Item" placeholder="Item" />
-            <input type="number" name="Weight" placeholder="Weight" min="0" step="0.25"/>
-            <button type="submit">Add Item</button>
-        </form>
-        <form id="setThetaForm">
-            <input type="number" min="0" max="360" name="newTheta" placeholder="degrees">
-            <button type="submit">Set Theta</button>
-        </form>
-        <p>Sum of weights: <span id="timeSum"></span></p>
-        <p>Current Item: <span id="currItem"></span></p>
-        <!-- <p>Current Subitem: <span id="currSubitem"></span></p> -->
-        <ol id="item-list">                        
-        </ol>
+        <div class="options-container">
+            <button type="button" id="clearButton">Clear</button>
+            <button type="button" id="startClock">Start Clock</button>
+            <button type="button" id="stopClock">Stop Clock</button>
+            <button type="button" id="resetClock">Reset Clock</button>
+            <button type="button" id="saveButton">Save</button>
+            <button type="button" id="loadButton">Load</button>
+            <input type="checkbox" id="notificationsEnabled" name="notificationsEnabled">
+            <label for="notificationsEnabled">Show notifications</label>
+            <form id="addItemForm">
+                <input type="text" name="Item" placeholder="Item" />
+                <input type="number" name="Weight" placeholder="Weight" min="0" step="0.25"/>
+                <button type="submit">Add Item</button>
+            </form>
+            <form id="setThetaForm">
+                <input type="number" min="0" max="360" name="newTheta" placeholder="degrees">
+                <button type="submit">Set Theta</button>
+            </form>
+            <form id="setHoursForm">
+                <input type="number" min="0" max="24" name="newHours" placeholder="Hours" step="any">
+                <button type="submit">Set Hours</button>
+            </form>
+            <p>Sum of weights: <span id="timeSum"></span></p>
+            <p>Current Item: <span id="currItem"></span></p>
+            <!-- <p>Current Subitem: <span id="currSubitem"></span></p> -->
+            <ol id="item-list">                        
+            </ol>
+        </div>
         <script src="chart.js"></script>
-        <!-- <script src="renderer.js"></script> -->
     </body>
 </html>
